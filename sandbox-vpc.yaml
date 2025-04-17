@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: SANDBOX VPC with secure subnets, SSM access, and necessary IAM roles
+Description: SANDBOX VPC with secure subnets
 
 Parameters:
   RegionAZ1:
@@ -154,6 +154,11 @@ Resources:
         FromPort: -1
         ToPort: -1
         CidrIp: !Ref VPCCIDR
+      - IpProtocol: tcp
+        FromPort: 22
+        ToPort: 22
+        CidrIp: !Ref VPCCIDR
+
       Tags:
       - Key: Name
         Value: sg-ssm-SANDBOX-w
@@ -252,8 +257,3 @@ Outputs:
     Value: !Ref SSMInstanceRole
   IAMInstanceProfile:
     Value: !Ref SSMInstanceProfile
-# minor change to trigger deploy
-# change to trigger deploy
-# test change
-# trigger
-# Trigger workflow run
