@@ -5,7 +5,7 @@ on:
     paths:
     - "sandbox-vpc.yaml"
   workflow_dispatch:
-    # 👈 this enables manual trigger in GitHub UI
+    # ✅ Enable manual trigger in GitHub UI
 
 permissions:
   contents: read
@@ -13,14 +13,20 @@ permissions:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
     steps:
     - name: 📥 Checkout repo
       uses: actions/checkout@v3
 
-    - name: 🧪 Validate template
-      run: aws cloudformation validate-template --template-body file://sandbox-vpc.yaml
+    - name: 🧪 Validate CloudFormation template
+      env:
+        AWS_REGION: us-west-1
+      run: |
+        aws cloudformation validate-template \
+          --template-body file://sandbox-vpc.yaml \
+          --region us-west-1
 
-    - name: ☁️ Deploy to AWS
+    - name: ☁️ Deploy VPC Stack to AWS
       env:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
