@@ -252,3 +252,4 @@ Outputs:
     Value: !Ref SSMInstanceRole
   IAMInstanceProfile:
     Value: !Ref SSMInstanceProfile
+# minor change to trigger deploy
