@@ -1,3 +1,5 @@
+# Trigger fix for region + credentials
+
 name: Deploy VPC Stack
 
 on:
@@ -5,7 +7,7 @@ on:
     paths:
     - "sandbox-vpc.yaml"
   workflow_dispatch:
-    # ✅ Enable manual trigger in GitHub UI
+    # ✅ Enable manual trigger from GitHub UI
 
 permissions:
   contents: read
@@ -14,28 +16,28 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
 
+    env:
+      AWS_REGION: us-west-1
+      AWS_DEFAULT_REGION: us-west-1
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
     steps:
-    - name: 📥 Checkout repo
+    - name: 📥 Checkout repository
       uses: actions/checkout@v3
 
     - name: 🧪 Validate CloudFormation template
-      env:
-        AWS_REGION: us-west-1
       run: |
         aws cloudformation validate-template \
           --template-body file://sandbox-vpc.yaml \
-          --region us-west-1
+          --region $AWS_REGION
 
     - name: ☁️ Deploy VPC Stack to AWS
-      env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        AWS_DEFAULT_REGION: us-west-1
       run: |
         aws cloudformation deploy \
           --template-file sandbox-vpc.yaml \
           --stack-name sandbox-vpc-stack \
-          --region us-west-1 \
+          --region $AWS_REGION \
           --capabilities CAPABILITY_NAMED_IAM \
           --parameter-overrides \
             RegionAZ1=us-west-1b \
