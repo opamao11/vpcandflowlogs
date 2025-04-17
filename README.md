@@ -4,19 +4,20 @@ Infrastructure-as-Code (IaC) templates for deploying a secure AWS VPC and enabli
 
 ---
 
-## Ì≥Å Files Included
+## üìÅ Files Included
 
-| File | Description |
-|------|-------------|
-| `vpc.yaml` | Creates a secure VPC with private subnets, custom NACLs, SSM endpoints, and IAM roles for EC2 access. |
-| `vpc-flowlogs-encrypted.yaml` | Provisions a KMS key, CloudWatch log group, IAM roles, and enables VPC Flow Logs for a given VPC. |
-| `deploy-flowlogs.sh` | Bash script to discover the VPC by tag and deploy `vpc-flowlogs-encrypted.yaml` with the appropriate parameters. |
+| File                          | Description                                                                                       |
+|------------------------------|---------------------------------------------------------------------------------------------------|
+| `vpc.yaml`                   | Creates a secure VPC with private subnets, custom NACLs, SSM endpoints, and IAM roles for EC2.     |
+| `vpc-flowlogs-encrypted.yaml`| Provisions a KMS key, CloudWatch log group, IAM roles, and enables encrypted VPC Flow Logs.       |
+| `deploy-flowlogs.sh`         | Bash script to discover the VPC by tag and deploy `vpc-flowlogs-encrypted.yaml` automatically.     |
 
 ---
 
-## Ì∫Ä Quickstart
+## üöÄ Quickstart
 
-### Deploy VPC:
+### Deploy VPC
+
 ```bash
 aws cloudformation deploy \
   --template-file vpc.yaml \
@@ -27,26 +28,3 @@ aws cloudformation deploy \
     RegionAZ1=us-west-1b \
     RegionAZ2=us-west-1c \
     VPCCIDR=10.10.0.0/24
-```
-
-### Deploy VPC Flow Logs:
-```bash
-chmod +x deploy-flowlogs.sh
-./deploy-flowlogs.sh
-```
-
----
-
-## Ì≥å Tags Used
-
-Make sure your VPC is tagged:
-```
-Key:   Name
-Value: SANDBOX-prod-w-vpc
-```
-
----
-
-## Ì≥ú License
-
-This project is licensed under the MIT License.
