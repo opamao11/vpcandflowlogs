@@ -1,0 +1,21 @@
+# CloudFormation generated files
+*.template
+*.log
+
+# macOS
+.DS_Store
+
+# Linux
+*.swp
+
+# AWS CLI config (just in case)
+.aws/
+
+# IDEs
+.vscode/
+.idea/
+
+# Secrets (never commit!)
+.env
+credentials
+*.pem

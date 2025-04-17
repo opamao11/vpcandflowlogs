@@ -1,0 +1,122 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Create and Encrypt VPC Flow Logs to CloudWatch in GovCloud
+
+Parameters:
+  VpcId:
+    Type: String
+    Description: VPC ID to monitor
+
+  Env:
+    Type: String
+    AllowedValues: [ dev, test, staging, prod, UAT, np ]
+    Description: Environment name (e.g., dev, prod)
+
+  ProgramName:
+    Type: String
+    Description: Mission account name
+
+  RegionTag:
+    Type: String
+    AllowedValues: [ east, west ]
+    Description: Short region tag for naming (east/west)
+
+Resources:
+  FlowLogsKMSKey:
+    Type: AWS::KMS::Key
+    Properties:
+      EnableKeyRotation: true
+      Description: KMS Key for VPC Flow Logs encryption
+      KeyPolicy:
+        Version: "2012-10-17"
+        Statement:
+        - Sid: Enable IAM User Permissions
+          Effect: Allow
+          Principal:
+            AWS: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:root
+          Action: "kms:*"
+          Resource: "*"
+        - Sid: Allow CloudWatch Logs Service
+          Effect: Allow
+          Principal:
+            Service: logs.amazonaws.com
+          Action:
+          - kms:Encrypt*
+          - kms:Decrypt*
+          - kms:ReEncrypt*
+          - kms:GenerateDataKey*
+          - kms:Describe*
+          Resource: "*"
+          Condition:
+            ArnLike:
+              kms:EncryptionContext:aws:logs:arn: !Sub arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:*
+
+  FlowLogsKMSAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: !Sub alias/${ProgramName}-${Env}-${RegionTag}-loggrpkey
+      TargetKeyId: !Ref FlowLogsKMSKey
+
+  VPCFlowLogLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub ${ProgramName}_${Env}_vpc_flows-${RegionTag}-loggrp
+      KmsKeyId: !GetAtt FlowLogsKMSKey.Arn
+      RetentionInDays: 90
+
+  CloudWatchFlowLogsRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: cloudwatch_flowlogs_permissions
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: vpc-flow-logs.amazonaws.com
+          Action: sts:AssumeRole
+          Condition:
+            StringEquals:
+              aws:SourceAccount: !Ref AWS::AccountId
+
+  CloudWatchFlowLogsPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: cloudwatch_permissions
+      Roles:
+      - !Ref CloudWatchFlowLogsRole
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+        - Effect: Allow
+          Action:
+          - logs:CreateLogGroup
+          - logs:CreateLogStream
+          - logs:PutLogEvents
+          - logs:DescribeLogGroups
+          - logs:DescribeLogStreams
+          Resource: "*"
+
+  VPCFlowLog:
+    Type: AWS::EC2::FlowLog
+    Properties:
+      DeliverLogsPermissionArn: !GetAtt CloudWatchFlowLogsRole.Arn
+      LogGroupName: !Ref VPCFlowLogLogGroup
+      ResourceId: !Ref VpcId
+      ResourceType: VPC
+      TrafficType: ALL
+      MaxAggregationInterval: 60
+      LogFormat: >-
+        ${account-id} ${action} ${az-id} ${bytes} ${dstaddr} ${dstport} ${end} ${flow-direction} ${instance-id} ${interface-id} ${log-status} ${packets} ${pkt-dst-aws-service} ${pkt-dstaddr} ${pkt-src-aws-service} ${pkt-srcaddr} ${protocol} ${region} ${srcaddr} ${srcport} ${start} ${sublocation-id} ${sublocation-type} ${subnet-id} ${tcp-flags} ${traffic-path} ${type} ${version} ${vpc-id}
+
+Outputs:
+  KMSKeyId:
+    Description: Key ID for encrypting logs
+    Value: !Ref FlowLogsKMSKey
+
+  LogGroupName:
+    Description: CloudWatch Log Group name for VPC Flow Logs
+    Value: !Ref VPCFlowLogLogGroup
+
+  RoleArn:
+    Description: IAM Role used by VPC Flow Logs
+    Value: !GetAtt CloudWatchFlowLogsRole.Arn
