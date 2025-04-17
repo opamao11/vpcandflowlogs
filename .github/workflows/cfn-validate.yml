@@ -1,25 +1,25 @@
-name: Validate CloudFormation Templates
+name: Lint CloudFormation Templates
 
 on:
   push:
     paths:
-      - '**.yaml'
-      - '**.yml'
+    - '**.yaml'
+    - '**.yml'
 
 jobs:
-  validate:
-    name: cfn-lint
+  lint:
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout Code
+    - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Validate all CloudFormation templates
+    - name: Install cfn-lint
+      run: |
+        pip install cfn-lint
+
+    - name: Run cfn-lint on templates
       run: |
         for file in $(find . -name "*.yaml" -o -name "*.yml"); do
-          echo "Ì≥Ñ Validating $file"
-          aws cloudformation validate-template --template-body file://$file
+          echo "üîç Linting $file"
+          cfn-lint $file
         done
-      env:
-        AWS_REGION: us-west-1
