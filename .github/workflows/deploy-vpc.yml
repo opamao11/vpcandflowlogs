@@ -4,6 +4,8 @@ on:
   push:
     paths:
     - "sandbox-vpc.yaml"
+  workflow_dispatch:
+    # 👈 this enables manual trigger in GitHub UI
 
 permissions:
   contents: read
@@ -11,7 +13,6 @@ permissions:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
     - name: 📥 Checkout repo
       uses: actions/checkout@v3
