@@ -17,9 +17,9 @@ jobs:
       run: |
         pip install cfn-lint
 
-    - name: Run cfn-lint on templates
+    - name: Run cfn-lint on CloudFormation templates only
       run: |
-        for file in $(find . -name "*.yaml" -o -name "*.yml"); do
+        for file in $(find . -name "*.yaml" -o -name "*.yml" | grep -v "\.github"); do
           echo "🔍 Linting $file"
           cfn-lint $file
         done
