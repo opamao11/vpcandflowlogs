@@ -1,0 +1,25 @@
+name: Validate CloudFormation Templates
+
+on:
+  push:
+    paths:
+      - '**.yaml'
+      - '**.yml'
+
+jobs:
+  validate:
+    name: cfn-lint
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    - name: Validate all CloudFormation templates
+      run: |
+        for file in $(find . -name "*.yaml" -o -name "*.yml"); do
+          echo "í³„ Validating $file"
+          aws cloudformation validate-template --template-body file://$file
+        done
+      env:
+        AWS_REGION: us-west-1
